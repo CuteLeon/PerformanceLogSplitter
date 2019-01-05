@@ -44,6 +44,8 @@ namespace PerformanceLogSplitter
 
             ExportPoolToFile(logDir);
 
+            GC.Collect();
+
             Console.WriteLine("任务完成！");
             Console.ReadLine();
         }
@@ -110,9 +112,10 @@ namespace PerformanceLogSplitter
         {
             IPLogs.AsParallel().ForAll(logsPair =>
             {
-                string ip = logsPair.Key;
+                string ip = logsPair.Key,
+                          log = string.Empty,
+                          targetPath = Path.Combine(exportDir, $"PerformanceLog.{ip}.txt");
                 ConcurrentBag<string> logs = logsPair.Value;
-                string targetPath = Path.Combine(exportDir, $"PerformanceLog.{ip}.txt");
                 Console.WriteLine($"导出=> {targetPath}");
 
                 try
@@ -121,9 +124,13 @@ namespace PerformanceLogSplitter
                     {
                         using (StreamWriter splitWriter = new StreamWriter(splitStream, Encoding.Default))
                         {
-                            foreach (string log in logs)
+                            while (logs.Count > 0)
                             {
-                                splitWriter.WriteLine(log);
+                                // 导出时顺带在列表中移除元素
+                                if (logs.TryTake(out log))
+                                {
+                                    splitWriter.WriteLine(log);
+                                }
                             }
                         }
                     }
@@ -131,6 +138,15 @@ namespace PerformanceLogSplitter
                 catch (Exception ex)
                 {
                     Console.WriteLine($"导出文件遇到异常：{targetPath}\n{ex.Message}");
+                }
+                finally
+                {
+                    // 导出后顺带在字典中移除键值对
+                    bool removeSuccess = false;
+                    while (!removeSuccess)
+                    {
+                        removeSuccess = IPLogs.TryRemove(ip, out _);
+                    }
                 }
             });
         }
