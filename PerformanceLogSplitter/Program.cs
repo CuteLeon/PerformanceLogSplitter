@@ -32,9 +32,9 @@ namespace PerformanceLogSplitter
             }
 
             Console.WriteLine($"开始拆分，工作目录：{logDir}");
-            Console.WriteLine($"开始查找文件：PerformanceLog*.txt");
+            Console.WriteLine($"开始查找文件：SrvLog_Perf.txt*");
             // 并行拆分所有文件
-            Directory.GetFiles(logDir, "PerformanceLog*.txt", SearchOption.AllDirectories).AsParallel().ForAll(path => SplitPerformanceLogFile(path));
+            Directory.GetFiles(logDir, "SrvLog_Perf.txt*", SearchOption.AllDirectories).AsParallel().ForAll(path => SplitPerformanceLogFile(path));
 
             ShowPoolState();
 
@@ -110,7 +110,7 @@ namespace PerformanceLogSplitter
             {
                 string ip = logsPair.Key,
                           log = string.Empty,
-                          targetPath = Path.Combine(exportDir, $"PerformanceLog.{ip}.txt");
+                          targetPath = Path.Combine(exportDir, $"SrvLog_Perf.{ip}.txt");
                 ConcurrentBag<string> logs = logsPair.Value;
                 Console.WriteLine($"导出=> {targetPath}");
 
