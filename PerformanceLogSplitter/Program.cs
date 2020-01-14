@@ -13,7 +13,7 @@ namespace PerformanceLogSplitter
         /// IP正则
         /// </summary>
         static readonly Regex IPRegex = new Regex(
-            @"^[\d-\s:\.]{23}\s(?<IPAddress>\d{1,3}(\.\d{1,3}){3})\s.*$",
+            @"^.*?\s(?<IPAddress>\d{1,3}(\.\d{1,3}){3})\s.*$",
             RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
         /// <summary>
@@ -31,6 +31,7 @@ namespace PerformanceLogSplitter
                 Environment.Exit(-2);
             }
 
+            Console.WriteLine("——————————————");
             Console.WriteLine($"开始拆分，工作目录：{logDir}");
             Console.WriteLine($"开始查找文件：SrvLog_Perf.txt*");
             // 并行拆分所有文件
@@ -38,7 +39,11 @@ namespace PerformanceLogSplitter
 
             ShowPoolState();
 
-            ExportPoolToFile(logDir);
+            string exportDir = Path.Combine(logDir, DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
+            Console.WriteLine("——————————————");
+            Console.WriteLine($"导出目录：{exportDir}");
+            Directory.CreateDirectory(exportDir);
+            ExportPoolToFile(exportDir);
 
             GC.Collect();
 
@@ -54,10 +59,12 @@ namespace PerformanceLogSplitter
         {
             if (!File.Exists(path))
             {
+                Console.WriteLine("——————————————");
                 Console.WriteLine($"不存在的文件：{path}");
                 return;
             }
 
+            Console.WriteLine("——————————————");
             Console.WriteLine($"开始拆分文件：{path}");
             try
             {
@@ -90,6 +97,7 @@ namespace PerformanceLogSplitter
             {
                 Console.WriteLine($"读取文件遇到异常：{path}\n{ex.Message}");
             }
+            Console.WriteLine("——————————————");
         }
 
         /// <summary>
@@ -98,6 +106,7 @@ namespace PerformanceLogSplitter
         private static void ShowPoolState()
         {
             Console.WriteLine($"日志文件解析完成，共 {IPLogs.Count} 个IP的 {IPLogs.Sum(bag => bag.Value.Count)} 条日志。");
+            Console.WriteLine("——————————————");
         }
 
         /// <summary>
@@ -113,6 +122,7 @@ namespace PerformanceLogSplitter
                           targetPath = Path.Combine(exportDir, $"SrvLog_Perf.{ip}.txt");
                 ConcurrentBag<string> logs = logsPair.Value;
                 Console.WriteLine($"导出=> {targetPath}");
+                Console.WriteLine("——————————————");
 
                 try
                 {
