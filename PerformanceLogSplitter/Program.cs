@@ -23,20 +23,16 @@ namespace PerformanceLogSplitter
 
         static void Main(string[] args)
         {
-            if (args.Length == 0)
-            {
-                Console.WriteLine("请传入Performance日志文件存放路径...");
-                Environment.Exit(-1);
-            }
-
-            string logDir = args[0];
+            string logDir = args.Length > 0 ? args[0] : AppDomain.CurrentDomain.BaseDirectory;
             if (!Directory.Exists(logDir))
             {
                 Console.WriteLine($"未找到日志文件存放目录：{logDir}");
+                Console.ReadLine();
                 Environment.Exit(-2);
             }
 
             Console.WriteLine($"开始拆分，工作目录：{logDir}");
+            Console.WriteLine($"开始查找文件：PerformanceLog*.txt");
             // 并行拆分所有文件
             Directory.GetFiles(logDir, "PerformanceLog*.txt", SearchOption.AllDirectories).AsParallel().ForAll(path => SplitPerformanceLogFile(path));
 
